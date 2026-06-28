@@ -239,7 +239,7 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
         >
           {flipPrefs.isAndroid && (
             <div
-              className="storybook-page-glow pointer-events-none absolute -inset-4 rounded-md"
+              className="storybook-page-glow pointer-events-none absolute -inset-2 rounded-sm"
               aria-hidden
             />
           )}

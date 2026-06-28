@@ -475,9 +475,8 @@ body {
 .storybook-page-glow {
   background: #fff9f2;
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.65),
-    0 0 48px rgba(255, 248, 235, 0.95),
-    0 0 96px rgba(255, 240, 210, 0.55);
+    0 0 0 1px rgba(255, 255, 255, 0.4),
+    0 4px 20px rgba(255, 248, 235, 0.45);
   z-index: 0;
 }
 
@@ -495,10 +494,10 @@ body {
 
 .storybook-android-lamp {
   background: radial-gradient(
-    ellipse 85% 65% at 50% 40%,
-    rgba(255, 252, 245, 0.72) 0%,
-    rgba(255, 245, 225, 0.38) 38%,
-    transparent 75%
+    ellipse 70% 50% at 50% 40%,
+    rgba(255, 252, 245, 0.28) 0%,
+    rgba(255, 245, 225, 0.12) 42%,
+    transparent 68%
   );
 }
 
