@@ -9,10 +9,30 @@ const APP_UTC_OFFSET = "+08:00";
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** Value for `<input type="datetime-local" />` in the user's local clock. */
+/** Postgres/Supabase timestamptz sometimes omits Z — treat as UTC, not local. */
+const TIMESTAMP_WITHOUT_OFFSET =
+  /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?(\.\d{1,6})?$/;
+
+/** datetime-local values from the form (no seconds or with seconds, no offset). */
+const DATETIME_LOCAL =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
+
+/** Value for `<input type="datetime-local" />` in the app timezone (GMT+8). */
 export function toDatetimeLocalValue(date: Date = new Date()): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: APP_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+
+  const part = (type: Intl.DateTimeFormatPartTypes): string =>
+    parts.find((p) => p.type === type)?.value ?? "00";
+
+  return `${part("year")}-${part("month")}-${part("day")}T${part("hour")}:${part("minute")}`;
 }
 
 /**
@@ -23,6 +43,12 @@ export function parseMemoryDate(value: string): Date {
   if (DATE_ONLY.test(value)) {
     return new Date(`${value}T00:00:00${APP_UTC_OFFSET}`);
   }
+
+  if (TIMESTAMP_WITHOUT_OFFSET.test(value)) {
+    const iso = value.includes(" ") ? value.replace(" ", "T") : value;
+    return new Date(`${iso}Z`);
+  }
+
   return new Date(value);
 }
 
@@ -33,8 +59,9 @@ export function normalizeMemoryDateForStorage(input: string): string {
   }
 
   // datetime-local without offset: interpret in app timezone
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(input)) {
-    return new Date(`${input}:00${APP_UTC_OFFSET}`).toISOString();
+  if (DATETIME_LOCAL.test(input)) {
+    const withSeconds = input.length === 16 ? `${input}:00` : input;
+    return new Date(`${withSeconds}${APP_UTC_OFFSET}`).toISOString();
   }
 
   return new Date(input).toISOString();
@@ -47,20 +74,23 @@ const DISPLAY_DATE: Intl.DateTimeFormatOptions = {
   year: "numeric",
 };
 
-const DISPLAY_DATETIME: Intl.DateTimeFormatOptions = {
-  ...DISPLAY_DATE,
-  hour: "numeric",
-  minute: "2-digit",
-};
-
 export function formatMemoryDate(date: string | Date): string {
   const d = typeof date === "string" ? parseMemoryDate(date) : date;
   return d.toLocaleDateString("en-US", DISPLAY_DATE);
 }
 
+const memoryDateTimeFormatter = new Intl.DateTimeFormat("en-US", {
+  timeZone: APP_TIMEZONE,
+  month: "long",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+});
+
 export function formatMemoryDateTime(date: string | Date): string {
   const d = typeof date === "string" ? parseMemoryDate(date) : date;
-  return d.toLocaleString("en-US", DISPLAY_DATETIME);
+  return memoryDateTimeFormatter.format(d);
 }
 
 export function getYear(date: string | Date): number {
