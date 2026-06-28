@@ -94,9 +94,10 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
   const isPageNearViewport = useCallback(
     (pageIndex: number) => {
       const flipIndex = pageIndex + 1;
-      return Math.abs(renderPage - flipIndex) <= imagePreloadRadius;
+      const activeFlipPage = isFlipping ? renderPage : currentPage;
+      return Math.abs(activeFlipPage - flipIndex) <= imagePreloadRadius;
     },
-    [renderPage, imagePreloadRadius],
+    [renderPage, currentPage, isFlipping, imagePreloadRadius],
   );
 
   const shouldDeferPageImages = useCallback(
@@ -152,16 +153,20 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
         isFire ? "texture-reading-room-fire" : "texture-reading-room-ice",
       )}
     >
-      {/* Ambient warm lamp — skipped on mobile (extra GPU layer during 3D flip) */}
-      {!flipPrefs.liteChrome && (
+      {/* Ambient reading lamp — static background layer (safe on Android; not part of 3D flip) */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        aria-hidden
+        style={{
+          background: isFire
+            ? "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(255, 120, 40, 0.15) 0%, transparent 70%)"
+            : "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(140, 200, 255, 0.12) 0%, transparent 70%)",
+        }}
+      />
+      {flipPrefs.isAndroid && (
         <div
-          className="pointer-events-none absolute inset-0"
+          className="storybook-android-lamp pointer-events-none absolute inset-0"
           aria-hidden
-          style={{
-            background: isFire
-              ? "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(255, 120, 40, 0.15) 0%, transparent 70%)"
-              : "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(140, 200, 255, 0.12) 0%, transparent 70%)",
-          }}
         />
       )}
 
@@ -344,7 +349,7 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
               enableStampHover={!flipPrefs.isCoarsePointer}
               liteStamps={flipPrefs.liteStamps}
               flipPageIndex={flipPageIndex}
-              currentFlipPage={renderPage}
+              currentFlipPage={currentPage}
             />
             );
           })}

@@ -42,8 +42,8 @@ export const BookPage = memo(
       <div
         ref={ref}
         className={cn(
-          "relative w-full h-full overflow-hidden",
-          liteStamps ? "texture-paper-lite" : "texture-paper",
+          "relative w-full h-full overflow-hidden texture-paper",
+          liteStamps && "book-page--android",
           "shadow-[inset_-3px_0_12px_rgba(0,0,0,0.06),inset_2px_0_6px_rgba(255,255,255,0.3)]",
           className,
         )}

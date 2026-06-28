@@ -57,7 +57,13 @@ function StampChrome({
       >
         <div className="relative aspect-square overflow-hidden bg-cream-paper-dark">
           {deferImage ? (
-            <div className="absolute inset-0 bg-cream-paper-dark" aria-hidden />
+            <div
+              className={cn(
+                "absolute inset-0",
+                lite ? "bg-[#faf6ee]" : "bg-cream-paper-dark",
+              )}
+              aria-hidden
+            />
           ) : (
             <Image
               src={memory.photo}
