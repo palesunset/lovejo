@@ -455,17 +455,11 @@ body {
     drop-shadow(0 10px 20px var(--shadow-warm));
 }
 
-@media (max-width: 768px), (pointer: coarse) {
-  .storybook-stage--immersive .stf__parent,
-  .stf__wrapper {
-    filter: none;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-  }
-
-  .storybook-stage--lite .stf__parent,
-  .storybook-stage--lite .stf__wrapper {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
-  }
+/* Android only — drop-shadow on animated 3D layers causes severe jank in Chrome */
+.storybook-stage--android .stf__parent,
+.storybook-stage--android .stf__wrapper {
+  filter: none;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
 }
 
 .storybook-flip {
@@ -481,13 +475,6 @@ body {
   border-radius: 2px;
   filter: drop-shadow(0 20px 40px var(--shadow-deep))
     drop-shadow(0 6px 14px var(--shadow-warm));
-}
-
-@media (max-width: 768px), (pointer: coarse) {
-  .stf__wrapper {
-    filter: none;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-  }
 }
 
 .stf__block {

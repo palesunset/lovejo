@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { isAndroidDevice } from "@/lib/utils/device";
 
 export interface BookDimensions {
   width: number;
@@ -53,9 +54,9 @@ const PRESETS = {
 
 function resolvePresetKey(
   preset: "default" | "immersive",
-  mobileLike: boolean,
+  android: boolean,
 ): keyof typeof PRESETS {
-  if (preset === "immersive" && mobileLike) {
+  if (preset === "immersive" && android) {
     return "immersiveMobile";
   }
   return preset;
@@ -74,15 +75,13 @@ export function useBookDimensions({
   viewportScale,
   singlePage = true,
 }: UseBookDimensionsOptions = {}): BookDimensions {
-  const [mobileLike, setMobileLike] = useState(false);
+  const [android, setAndroid] = useState(false);
 
   useEffect(() => {
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    const narrow = window.matchMedia("(max-width: 768px)").matches;
-    setMobileLike(coarse || narrow);
+    setAndroid(isAndroidDevice());
   }, []);
 
-  const activePresetKey = resolvePresetKey(preset, mobileLike);
+  const activePresetKey = resolvePresetKey(preset, android);
   const base = PRESETS[activePresetKey];
 
   const resolved = useMemo(

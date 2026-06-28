@@ -89,7 +89,7 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
 
   const imagePreloadRadius =
     flipPrefs.preloadRadius +
-    (flipPrefs.isCoarsePointer && adjacentPreload ? 1 : 0);
+    (flipPrefs.isAndroid && adjacentPreload ? 1 : 0);
 
   const isPageNearViewport = useCallback(
     (pageIndex: number) => {
@@ -101,8 +101,9 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
 
   const shouldDeferPageImages = useCallback(
     (pageIndex: number) =>
-      isFlipping || !isPageNearViewport(pageIndex),
-    [isFlipping, isPageNearViewport],
+      (flipPrefs.deferImagesWhileFlipping && isFlipping) ||
+      !isPageNearViewport(pageIndex),
+    [flipPrefs.deferImagesWhileFlipping, isFlipping, isPageNearViewport],
   );
 
   const handleFlipNext = useCallback(() => {
@@ -130,14 +131,14 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
         setRenderPage(e.data);
         setIsFlipping(false);
 
-        if (flipPrefs.isCoarsePointer) {
+        if (flipPrefs.isAndroid) {
           preloadTimerRef.current = setTimeout(() => {
             setAdjacentPreload(true);
           }, 500);
         }
       }, flipPrefs.flippingTime + 50);
     },
-    [flipPrefs.flippingTime, flipPrefs.isCoarsePointer],
+    [flipPrefs.flippingTime, flipPrefs.isAndroid],
   );
 
   const theme = book.coverVariant ?? "fire";
@@ -214,7 +215,7 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           "storybook-stage storybook-stage--immersive relative z-10 flex-1 min-h-0",
-          flipPrefs.liteChrome && "storybook-stage--lite",
+          flipPrefs.liteChrome && "storybook-stage--android",
         )}
       >
         <div
