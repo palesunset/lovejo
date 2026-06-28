@@ -14,6 +14,10 @@ interface BookPageProps {
   deferImages?: boolean;
   animateStamps?: boolean;
   enableStampHover?: boolean;
+  liteStamps?: boolean;
+  /** Flip index of this memory page (cover = 0). */
+  flipPageIndex?: number;
+  currentFlipPage?: number;
 }
 
 /** Scrapbook-style page with margin decoration and stamp collage. */
@@ -28,6 +32,9 @@ export const BookPage = memo(
       deferImages = false,
       animateStamps = true,
       enableStampHover = true,
+      liteStamps = false,
+      flipPageIndex,
+      currentFlipPage,
     },
     ref,
   ) {
@@ -35,7 +42,8 @@ export const BookPage = memo(
       <div
         ref={ref}
         className={cn(
-          "texture-paper relative w-full h-full overflow-hidden",
+          "relative w-full h-full overflow-hidden",
+          liteStamps ? "texture-paper-lite" : "texture-paper",
           "shadow-[inset_-3px_0_12px_rgba(0,0,0,0.06),inset_2px_0_6px_rgba(255,255,255,0.3)]",
           className,
         )}
@@ -63,6 +71,13 @@ export const BookPage = memo(
                 deferImage={deferImages}
                 animate={animateStamps}
                 enableHover={enableStampHover}
+                lite={liteStamps}
+                priority={
+                  !deferImages &&
+                  liteStamps &&
+                  flipPageIndex !== undefined &&
+                  currentFlipPage === flipPageIndex
+                }
               />
             ))}
           </div>

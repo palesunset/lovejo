@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface BookDimensions {
   width: number;
@@ -40,7 +40,26 @@ const PRESETS = {
     footerHeight: 52,
     horizontalPadding: 12,
   },
+  /** Smaller flip canvas on touch — less GPU work per page turn */
+  immersiveMobile: {
+    viewportScale: 0.9,
+    maxPageWidth: 400,
+    maxPageHeight: 560,
+    headerHeight: 48,
+    footerHeight: 52,
+    horizontalPadding: 8,
+  },
 } as const;
+
+function resolvePresetKey(
+  preset: "default" | "immersive",
+  mobileLike: boolean,
+): keyof typeof PRESETS {
+  if (preset === "immersive" && mobileLike) {
+    return "immersiveMobile";
+  }
+  return preset;
+}
 
 /**
  * Calculates react-pageflip page dimensions — sized to fit inside the viewport.
@@ -55,16 +74,36 @@ export function useBookDimensions({
   viewportScale,
   singlePage = true,
 }: UseBookDimensionsOptions = {}): BookDimensions {
-  const base = PRESETS[preset];
+  const [mobileLike, setMobileLike] = useState(false);
 
-  const resolved = {
-    headerHeight: headerHeight ?? base.headerHeight,
-    footerHeight: footerHeight ?? base.footerHeight,
-    horizontalPadding: horizontalPadding ?? base.horizontalPadding,
-    maxPageWidth: maxPageWidth ?? base.maxPageWidth,
-    maxPageHeight: maxPageHeight ?? base.maxPageHeight,
-    viewportScale: viewportScale ?? base.viewportScale,
-  };
+  useEffect(() => {
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const narrow = window.matchMedia("(max-width: 768px)").matches;
+    setMobileLike(coarse || narrow);
+  }, []);
+
+  const activePresetKey = resolvePresetKey(preset, mobileLike);
+  const base = PRESETS[activePresetKey];
+
+  const resolved = useMemo(
+    () => ({
+      headerHeight: headerHeight ?? base.headerHeight,
+      footerHeight: footerHeight ?? base.footerHeight,
+      horizontalPadding: horizontalPadding ?? base.horizontalPadding,
+      maxPageWidth: maxPageWidth ?? base.maxPageWidth,
+      maxPageHeight: maxPageHeight ?? base.maxPageHeight,
+      viewportScale: viewportScale ?? base.viewportScale,
+    }),
+    [
+      headerHeight,
+      footerHeight,
+      horizontalPadding,
+      maxPageWidth,
+      maxPageHeight,
+      viewportScale,
+      base,
+    ],
+  );
 
   const [dimensions, setDimensions] = useState<BookDimensions>({
     width: preset === "immersive" ? 360 : 300,
@@ -79,7 +118,10 @@ export function useBookDimensions({
       const availableW =
         (vw - resolved.horizontalPadding * 2) * resolved.viewportScale;
       const availableH =
-        (vh - resolved.headerHeight - resolved.footerHeight - resolved.horizontalPadding) *
+        (vh -
+          resolved.headerHeight -
+          resolved.footerHeight -
+          resolved.horizontalPadding) *
         resolved.viewportScale;
 
       let pageH = availableH;

@@ -52,7 +52,10 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
   const [currentPage, setCurrentPage] = useState(0);
   /** Image preload window — updated after flip ends to avoid jank mid-animation. */
   const [renderPage, setRenderPage] = useState(0);
+  const [isFlipping, setIsFlipping] = useState(false);
+  const [adjacentPreload, setAdjacentPreload] = useState(false);
   const flipEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preloadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [memories, setMemories] = useState(initialMemories);
   const bookSize = useBookDimensions({ preset: "immersive" });
@@ -62,6 +65,9 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
     return () => {
       if (flipEndTimerRef.current) {
         clearTimeout(flipEndTimerRef.current);
+      }
+      if (preloadTimerRef.current) {
+        clearTimeout(preloadTimerRef.current);
       }
     };
   }, []);
@@ -81,9 +87,22 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
   );
   const totalPages = memoryPages.length + 2;
 
+  const imagePreloadRadius =
+    flipPrefs.preloadRadius +
+    (flipPrefs.isCoarsePointer && adjacentPreload ? 1 : 0);
+
   const isPageNearViewport = useCallback(
-    (pageIndex: number) => Math.abs(renderPage - (pageIndex + 1)) <= 1,
-    [renderPage],
+    (pageIndex: number) => {
+      const flipIndex = pageIndex + 1;
+      return Math.abs(renderPage - flipIndex) <= imagePreloadRadius;
+    },
+    [renderPage, imagePreloadRadius],
+  );
+
+  const shouldDeferPageImages = useCallback(
+    (pageIndex: number) =>
+      isFlipping || !isPageNearViewport(pageIndex),
+    [isFlipping, isPageNearViewport],
   );
 
   const handleFlipNext = useCallback(() => {
@@ -97,16 +116,28 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
   const handlePageChange = useCallback(
     (e: { data: number }) => {
       setCurrentPage(e.data);
+      setIsFlipping(true);
+      setAdjacentPreload(false);
 
       if (flipEndTimerRef.current) {
         clearTimeout(flipEndTimerRef.current);
       }
+      if (preloadTimerRef.current) {
+        clearTimeout(preloadTimerRef.current);
+      }
 
       flipEndTimerRef.current = setTimeout(() => {
         setRenderPage(e.data);
-      }, flipPrefs.flippingTime + 80);
+        setIsFlipping(false);
+
+        if (flipPrefs.isCoarsePointer) {
+          preloadTimerRef.current = setTimeout(() => {
+            setAdjacentPreload(true);
+          }, 500);
+        }
+      }, flipPrefs.flippingTime + 50);
     },
-    [flipPrefs.flippingTime],
+    [flipPrefs.flippingTime, flipPrefs.isCoarsePointer],
   );
 
   const theme = book.coverVariant ?? "fire";
@@ -120,28 +151,33 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
         isFire ? "texture-reading-room-fire" : "texture-reading-room-ice",
       )}
     >
-      {/* Ambient warm lamp */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden
-        style={{
-          background: isFire
-            ? "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(255, 120, 40, 0.15) 0%, transparent 70%)"
-            : "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(140, 200, 255, 0.12) 0%, transparent 70%)",
-        }}
-      />
+      {/* Ambient warm lamp — skipped on mobile (extra GPU layer during 3D flip) */}
+      {!flipPrefs.liteChrome && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          aria-hidden
+          style={{
+            background: isFire
+              ? "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(255, 120, 40, 0.15) 0%, transparent 70%)"
+              : "radial-gradient(ellipse 55% 45% at 50% 38%, rgba(140, 200, 255, 0.12) 0%, transparent 70%)",
+          }}
+        />
+      )}
 
       {/* Top bar */}
       <motion.header
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={flipPrefs.liteChrome ? false : { opacity: 0, y: -12 }}
+        animate={flipPrefs.liteChrome ? undefined : { opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="relative z-10 flex items-center justify-between px-4 sm:px-6 py-2 shrink-0"
       >
         <Link
           href="/"
           className={cn(
-            "flex items-center gap-2 rounded-full border bg-black/20 px-3 py-1.5 text-cream-paper/80 backdrop-blur-sm transition-colors hover:bg-black/30",
+            "flex items-center gap-2 rounded-full border px-3 py-1.5 text-cream-paper/80 transition-colors hover:bg-black/30",
+            flipPrefs.liteChrome
+              ? "bg-black/30"
+              : "bg-black/20 backdrop-blur-sm hover:bg-black/30",
             isFire
               ? "border-orange-400/25 hover:text-orange-200"
               : "border-sky-300/25 hover:text-sky-100",
@@ -173,10 +209,13 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
 
       {/* Book — centered, constrained to calculated size */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
+        initial={flipPrefs.liteChrome ? false : { opacity: 0, scale: 0.96, y: 12 }}
+        animate={flipPrefs.liteChrome ? undefined : { opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-        className="storybook-stage storybook-stage--immersive relative z-10 flex-1 min-h-0"
+        className={cn(
+          "storybook-stage storybook-stage--immersive relative z-10 flex-1 min-h-0",
+          flipPrefs.liteChrome && "storybook-stage--lite",
+        )}
       >
         <div
           className="shrink-0"
@@ -200,7 +239,7 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
             flippingTime={flipPrefs.flippingTime}
             useMouseEvents={true}
             clickEventForward={true}
-            swipeDistance={30}
+            swipeDistance={flipPrefs.isCoarsePointer ? 20 : 30}
           >
           <div
             key="cover"
@@ -288,20 +327,26 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
             </div>
           </div>
 
-          {memoryPages.map((pageMemories, pageIndex) => (
+          {memoryPages.map((pageMemories, pageIndex) => {
+            const flipPageIndex = pageIndex + 1;
+            return (
             <BookPage
               key={`page-${pageIndex}`}
               memories={pageMemories}
               pageTitle={PAGE_TITLES[pageIndex % PAGE_TITLES.length]}
               pageNumber={pageIndex + 1}
               onMemoryClick={setSelectedMemory}
-              deferImages={!isPageNearViewport(pageIndex)}
+              deferImages={shouldDeferPageImages(pageIndex)}
               animateStamps={
                 !flipPrefs.reduceStampMotion && isPageNearViewport(pageIndex)
               }
               enableStampHover={!flipPrefs.isCoarsePointer}
+              liteStamps={flipPrefs.liteStamps}
+              flipPageIndex={flipPageIndex}
+              currentFlipPage={renderPage}
             />
-          ))}
+            );
+          })}
 
           <div
             key="back"
@@ -319,8 +364,8 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
 
       {/* Page controls */}
       <motion.footer
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={flipPrefs.liteChrome ? false : { opacity: 0, y: 12 }}
+        animate={flipPrefs.liteChrome ? undefined : { opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.5 }}
         className="relative z-10 flex items-center justify-center gap-5 sm:gap-8 py-2 sm:py-3 shrink-0"
       >
@@ -328,7 +373,12 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
           type="button"
           onClick={handleFlipPrev}
           disabled={currentPage === 0}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-antique-gold/25 bg-black/25 text-cream-paper backdrop-blur-sm transition-all hover:bg-black/40 hover:border-antique-gold/40 disabled:opacity-25 disabled:cursor-not-allowed"
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-full border border-antique-gold/25 text-cream-paper transition-all hover:bg-black/40 hover:border-antique-gold/40 disabled:opacity-25 disabled:cursor-not-allowed",
+            flipPrefs.liteChrome
+              ? "bg-black/35"
+              : "bg-black/25 backdrop-blur-sm",
+          )}
           aria-label="Previous page"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -356,7 +406,12 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
           type="button"
           onClick={handleFlipNext}
           disabled={currentPage >= totalPages - 1}
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-antique-gold/25 bg-black/25 text-cream-paper backdrop-blur-sm transition-all hover:bg-black/40 hover:border-antique-gold/40 disabled:opacity-25 disabled:cursor-not-allowed"
+          className={cn(
+            "flex h-10 w-10 items-center justify-center rounded-full border border-antique-gold/25 text-cream-paper transition-all hover:bg-black/40 hover:border-antique-gold/40 disabled:opacity-25 disabled:cursor-not-allowed",
+            flipPrefs.liteChrome
+              ? "bg-black/35"
+              : "bg-black/25 backdrop-blur-sm",
+          )}
           aria-label="Next page"
         >
           <ChevronRight className="h-5 w-5" />
