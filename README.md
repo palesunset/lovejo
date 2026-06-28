@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Our Story Board
+
+A premium digital scrapbook for two people to preserve memories, adventures, photos, and stories together. Built to feel like opening a real leather-bound memory book — not social media.
+
+## Tech Stack
+
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **Tailwind CSS v4**
+- **Supabase** (Auth, Database, Storage)
+- **React PageFlip** (realistic page turning)
+- **Framer Motion** (premium animations)
+- **Lucide Icons**
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure Supabase
+
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the migration in `supabase/migrations/001_initial_schema.sql`
+3. Run the seed in `supabase/seed.sql` (update emails first)
+4. Create a storage bucket named `memory-photos` (public)
+5. Copy `.env.local.example` to `.env.local` and fill in your keys
+
+### 3. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Without Supabase configured, the app runs with example data for preview.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
 
-## Learn More
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── page.tsx            # Homepage (wooden desk + books)
+│   ├── book/[bookId]/      # Storybook view
+│   ├── timeline/           # Chronological timeline
+│   ├── login/              # Authentication
+│   ├── profile/            # User profile
+│   ├── search/             # Memory search
+│   └── api/memories/       # Memory API
+├── components/
+│   ├── books/              # BookCover, BookShelf, StoryBook, BookPage
+│   ├── memories/           # MemoryStamp, MemoryModal, AddMemoryModal
+│   ├── timeline/           # TimelineView
+│   ├── layout/             # NavigationBar, FAB, UserAvatar
+│   └── ui/                 # Button, Modal
+└── lib/
+    ├── supabase/           # Client, server, middleware helpers
+    ├── services/           # Memory data service
+    ├── types/              # TypeScript types
+    ├── validators/         # Zod schemas
+    └── data/               # Example seed data
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Homepage** — Realistic wooden desk with two leather-bound books
+- **Storybook** — Page-flip navigation with memory stamps
+- **Memory Stamps** — Postage-stamp style entries with expand animation
+- **Dual Perspectives** — Both users can share their side of a memory
+- **Timeline** — Chronological view grouped by year and month
+- **Add Memory** — Photo upload, story, date, location, tags
+- **Authentication** — Supabase Auth restricted to two invited users
+- **Dark Mode** — Full theme support via next-themes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Database
 
-## Deploy on Vercel
+See [`supabase/README.md`](supabase/README.md) for migration instructions.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Tables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+profiles ──┬── memories (created_by)
+           └── memory_perspectives (author_id)
+
+books ── memories ──┬── memory_photos
+                    ├── memory_perspectives
+                    └── memory_tags → tags
+```
+
+- **profiles** — linked to Supabase Auth (`ON DELETE CASCADE`)
+- **books** — title, description, cover_image
+- **memories** — `memory_date` (date), `created_by` → profiles (`ON DELETE RESTRICT`)
+- **memory_photos** — unlimited photos via `display_order` (`ON DELETE CASCADE`)
+- **memory_perspectives** — one story per author per memory (`ON DELETE CASCADE`)
+- **tags** + **memory_tags** — normalized M:N tagging
+- **allowed_users** — two-user auth whitelist
+
+### Migrations
+
+```
+supabase/migrations/
+├── 001_normalized_schema.sql       # up
+├── 001_normalized_schema.down.sql # rollback
+├── 002_storage_policies.sql        # up
+└── 002_storage_policies.down.sql   # rollback
+```
+
+## Design Tokens
+
+| Token | Value |
+|-------|-------|
+| Warm Brown | `#5c3d2e` |
+| Antique Gold | `#c9a962` |
+| Cream Paper | `#f5f0e6` |
+| Dark Navy | `#1e2a3a` |
+| Muted Green | `#6b7f6b` |
+| Soft Copper | `#b8734a` |
+
+**Fonts:** Playfair Display (headings), Lora (body), Caveat (accent)

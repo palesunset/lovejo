@@ -1,26 +1,481 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --warm-brown: #4a3226;
+  --warm-brown-light: #6b4a38;
+  --warm-brown-dark: #2e1f17;
+  --antique-gold: #c4a055;
+  --antique-gold-light: #dcc07a;
+  --antique-gold-dim: #8a7344;
+  --cream-paper: #f4ecdf;
+  --cream-paper-dark: #e6dac8;
+  --cream-paper-warm: #efe4d4;
+  --dark-navy: #1a2433;
+  --dark-navy-light: #263347;
+  --muted-green: #5c6f5c;
+  --soft-copper: #a86840;
+  --charcoal: #2a2218;
+  --charcoal-soft: #4a3f34;
+  --wood-desk: #2c1e14;
+  --wood-desk-light: #3d2a1c;
+  --shadow-warm: rgba(35, 20, 10, 0.45);
+  --shadow-deep: rgba(15, 8, 4, 0.65);
+  --vignette: rgba(0, 0, 0, 0.55);
+}
+
+.dark {
+  --cream-paper: #2a241e;
+  --cream-paper-dark: #1f1a15;
+  --cream-paper-warm: #252019;
+  --charcoal: #e8dfd0;
+  --charcoal-soft: #c9bfb0;
+  --wood-desk: #120c08;
+  --wood-desk-light: #1a120c;
+  --shadow-warm: rgba(0, 0, 0, 0.55);
+  --shadow-deep: rgba(0, 0, 0, 0.75);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-warm-brown: var(--warm-brown);
+  --color-warm-brown-light: var(--warm-brown-light);
+  --color-warm-brown-dark: var(--warm-brown-dark);
+  --color-antique-gold: var(--antique-gold);
+  --color-antique-gold-light: var(--antique-gold-light);
+  --color-antique-gold-dim: var(--antique-gold-dim);
+  --color-cream-paper: var(--cream-paper);
+  --color-cream-paper-dark: var(--cream-paper-dark);
+  --color-cream-paper-warm: var(--cream-paper-warm);
+  --color-dark-navy: var(--dark-navy);
+  --color-dark-navy-light: var(--dark-navy-light);
+  --color-muted-green: var(--muted-green);
+  --color-soft-copper: var(--soft-copper);
+  --color-charcoal: var(--charcoal);
+  --color-charcoal-soft: var(--charcoal-soft);
+  --color-wood-desk: var(--wood-desk);
+  --color-wood-desk-light: var(--wood-desk-light);
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-lora);
+  --font-accent: var(--font-caveat);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--wood-desk);
+  color: var(--charcoal);
+  font-family: var(--font-lora), Georgia, "Times New Roman", serif;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ─── Paper textures ─── */
+.texture-paper {
+  background-color: var(--cream-paper);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(255, 248, 235, 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(210, 190, 160, 0.15) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+}
+
+.texture-paper-aged {
+  background-color: var(--cream-paper-warm);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 30%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+/* ─── Homepage: starlit reading altar (pure CSS) ─── */
+.backdrop-home {
+  background-color: #0a0e18;
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% 100%, rgba(45, 28, 18, 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 35% at 50% 88%, rgba(196, 160, 85, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 80% at 50% 0%, rgba(25, 40, 70, 0.6) 0%, transparent 55%),
+    linear-gradient(180deg, #0c1222 0%, #080c14 45%, #060810 100%);
+}
+
+.backdrop-home__stars {
+  pointer-events: none;
+}
+
+/* Dim always-visible star field */
+.backdrop-home__stars--base {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 28% 42%, rgba(255, 255, 255, 0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 62% 35%, rgba(255, 255, 255, 0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 8% 58%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 55% 65%, rgba(255, 255, 255, 0.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 92% 68%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 18% 88%, rgba(255, 255, 255, 0.18) 0%, transparent 100%),
+    radial-gradient(1px 1px at 48% 28%, rgba(255, 255, 255, 0.22) 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 82%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 38% 8%, rgba(255, 255, 255, 0.25) 0%, transparent 100%);
+  opacity: 0.9;
+}
+
+/* Twinkling layer A — core + soft glow halo per star */
+.backdrop-home__stars--twinkle-a {
+  background-image:
+    radial-gradient(10px 10px at 45% 12%, rgba(255, 248, 220, 0.28) 0%, transparent 100%),
+    radial-gradient(3px 3px at 45% 12%, rgba(255, 248, 220, 1) 0%, transparent 100%),
+    radial-gradient(8px 8px at 78% 22%, rgba(255, 255, 255, 0.22) 0%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 78% 22%, rgba(255, 255, 255, 0.95) 0%, transparent 100%),
+    radial-gradient(10px 10px at 72% 78%, rgba(255, 240, 200, 0.26) 0%, transparent 100%),
+    radial-gradient(3px 3px at 72% 78%, rgba(255, 240, 200, 1) 0%, transparent 100%),
+    radial-gradient(8px 8px at 15% 32%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 15% 32%, rgba(255, 255, 255, 0.9) 0%, transparent 100%),
+    radial-gradient(8px 8px at 58% 48%, rgba(200, 220, 255, 0.24) 0%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 58% 48%, rgba(200, 220, 255, 0.95) 0%, transparent 100%),
+    radial-gradient(14px 14px at 22% 8%, rgba(255, 230, 180, 0.32) 0%, transparent 100%),
+    radial-gradient(4px 4px at 22% 8%, rgba(255, 230, 180, 1) 0%, transparent 100%);
+  filter: blur(0.4px);
+  animation: star-twinkle 2.8s ease-in-out infinite;
+}
+
+/* Twinkling layer B — offset timing & positions */
+.backdrop-home__stars--twinkle-b {
+  background-image:
+    radial-gradient(8px 8px at 88% 48%, rgba(200, 220, 255, 0.24) 0%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 88% 48%, rgba(200, 220, 255, 0.95) 0%, transparent 100%),
+    radial-gradient(8px 8px at 35% 72%, rgba(255, 255, 255, 0.22) 0%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 35% 72%, rgba(255, 255, 255, 0.9) 0%, transparent 100%),
+    radial-gradient(10px 10px at 68% 18%, rgba(255, 248, 220, 0.28) 0%, transparent 100%),
+    radial-gradient(3px 3px at 68% 18%, rgba(255, 248, 220, 1) 0%, transparent 100%),
+    radial-gradient(7px 7px at 5% 75%, rgba(255, 255, 255, 0.18) 0%, transparent 100%),
+    radial-gradient(2px 2px at 5% 75%, rgba(255, 255, 255, 0.85) 0%, transparent 100%),
+    radial-gradient(8px 8px at 42% 55%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 42% 55%, rgba(255, 255, 255, 0.9) 0%, transparent 100%),
+    radial-gradient(10px 10px at 95% 15%, rgba(255, 230, 200, 0.26) 0%, transparent 100%),
+    radial-gradient(3px 3px at 95% 15%, rgba(255, 230, 200, 0.95) 0%, transparent 100%);
+  filter: blur(0.4px);
+  animation: star-twinkle-slow 4.2s ease-in-out infinite;
+  animation-delay: -1.6s;
+}
+
+/* Twinkling layer C — subtle fast sparkles */
+.backdrop-home__stars--twinkle-c {
+  background-image:
+    radial-gradient(7px 7px at 25% 55%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(2px 2px at 25% 55%, rgba(255, 255, 255, 0.95) 0%, transparent 100%),
+    radial-gradient(7px 7px at 52% 22%, rgba(255, 248, 220, 0.22) 0%, transparent 100%),
+    radial-gradient(2px 2px at 52% 22%, rgba(255, 248, 220, 0.9) 0%, transparent 100%),
+    radial-gradient(7px 7px at 80% 62%, rgba(255, 255, 255, 0.2) 0%, transparent 100%),
+    radial-gradient(2px 2px at 80% 62%, rgba(255, 255, 255, 0.9) 0%, transparent 100%),
+    radial-gradient(7px 7px at 12% 68%, rgba(200, 220, 255, 0.18) 0%, transparent 100%),
+    radial-gradient(2px 2px at 12% 68%, rgba(200, 220, 255, 0.85) 0%, transparent 100%);
+  filter: blur(0.35px);
+  animation: star-twinkle-fast 1.9s ease-in-out infinite;
+  animation-delay: -0.8s;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes star-twinkle-slow {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  35% {
+    opacity: 0.95;
+  }
+  70% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes star-twinkle-fast {
+  0%,
+  100% {
+    opacity: 0.14;
+  }
+  45% {
+    opacity: 0.9;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backdrop-home__stars--twinkle-a,
+  .backdrop-home__stars--twinkle-b,
+  .backdrop-home__stars--twinkle-c {
+    animation: none;
+    opacity: 0.65;
+    filter: none;
+  }
+}
+
+.backdrop-home__altar {
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.25) 100%),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.15) 0%,
+      transparent 15%,
+      rgba(255, 220, 170, 0.04) 50%,
+      transparent 85%,
+      rgba(0, 0, 0, 0.15) 100%
+    ),
+    linear-gradient(180deg, #2a1810 0%, #1a1008 100%);
+  box-shadow:
+    0 -2px 0 rgba(196, 160, 85, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.backdrop-home__altar-edge {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(196, 160, 85, 0.35),
+    transparent
+  );
+  height: 1px;
+}
+
+.texture-wood {
+  background-color: var(--wood-desk);
+  background-image:
+    linear-gradient(175deg, rgba(255, 220, 170, 0.04) 0%, transparent 40%),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.12) 0%,
+      transparent 8%,
+      rgba(255, 255, 255, 0.02) 25%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.08) 75%,
+      transparent 92%,
+      rgba(0, 0, 0, 0.1) 100%
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.015 0.12' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.18'/%3E%3C/svg%3E");
+}
+
+/* Immersive reading room (fullscreen book) */
+.texture-reading-room {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 45%, rgba(80, 55, 35, 0.35) 0%, transparent 70%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, var(--vignette) 100%),
+    linear-gradient(180deg, var(--wood-desk-light) 0%, var(--wood-desk) 40%, #1a1008 100%);
+}
+
+/* ─── Leather book cover ─── */
+.texture-leather-brown {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+    linear-gradient(145deg, #6b4a38 0%, var(--warm-brown-dark) 45%, #2a1a12 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset -2px 0 6px rgba(0, 0, 0, 0.3);
+}
+
+.texture-leather-fire {
+  background:
+    radial-gradient(ellipse at 35% 15%, rgba(255, 180, 80, 0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 85%, rgba(255, 60, 20, 0.2) 0%, transparent 40%),
+    linear-gradient(155deg, #8b2e1a 0%, #5c1508 35%, #3a0a04 70%, #1f0502 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(255, 200, 120, 0.12),
+    inset -2px 0 8px rgba(0, 0, 0, 0.45),
+    0 0 24px rgba(255, 90, 30, 0.15);
+}
+
+.texture-leather-ice {
+  background:
+    radial-gradient(ellipse at 30% 12%, rgba(220, 245, 255, 0.4) 0%, transparent 45%),
+    radial-gradient(ellipse at 75% 80%, rgba(100, 180, 255, 0.15) 0%, transparent 40%),
+    linear-gradient(155deg, #4a6a8a 0%, #2a4560 35%, #152535 70%, #0a1520 100%);
+  box-shadow:
+    inset 1px 0 0 rgba(220, 240, 255, 0.15),
+    inset -2px 0 8px rgba(0, 0, 0, 0.4),
+    0 0 24px rgba(120, 190, 255, 0.12);
+}
+
+/* Reading room variants */
+.texture-reading-room-fire {
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 40%, rgba(255, 100, 40, 0.18) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 35%, rgba(20, 5, 0, 0.7) 100%),
+    linear-gradient(180deg, #2a1208 0%, #1a0804 50%, #0d0402 100%);
+}
+
+.texture-reading-room-ice {
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 40%, rgba(140, 200, 255, 0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 100% 100% at 50% 50%, transparent 35%, rgba(5, 15, 30, 0.75) 100%),
+    linear-gradient(180deg, #0f1a28 0%, #0a1220 50%, #050a12 100%);
+}
+
+/* ─── Gold emboss ─── */
+.gold-foil {
+  background: linear-gradient(
+    135deg,
+    var(--antique-gold-dim) 0%,
+    var(--antique-gold-light) 35%,
+    var(--antique-gold) 50%,
+    var(--antique-gold-light) 65%,
+    var(--antique-gold-dim) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.ember-foil {
+  background: linear-gradient(
+    135deg,
+    #8b4510 0%,
+    #ffb347 35%,
+    #ff6b2b 50%,
+    #ffd700 65%,
+    #8b2500 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.frost-foil {
+  background: linear-gradient(
+    135deg,
+    #5a8ab0 0%,
+    #d4eeff 35%,
+    #ffffff 50%,
+    #b8dcff 65%,
+    #3a6080 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ─── Stamp ─── */
+.stamp-border {
+  background: linear-gradient(145deg, #fffef9 0%, #f5f0e6 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 3px 12px var(--shadow-warm),
+    0 1px 3px rgba(0, 0, 0, 0.12);
+  position: relative;
+}
+
+.stamp-border::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  background: radial-gradient(circle, transparent 45%, #fffef9 46%) 0 0 / 9px 9px;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  padding: 4px;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Washi tape */
+.tape-strip {
+  background: linear-gradient(
+    180deg,
+    rgba(245, 235, 200, 0.75) 0%,
+    rgba(230, 215, 175, 0.55) 100%
+  );
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Typography helpers ─── */
+.font-heading {
+  font-family: var(--font-playfair), Georgia, serif;
+  letter-spacing: 0.02em;
+}
+
+.font-body {
+  font-family: var(--font-lora), Georgia, serif;
+}
+
+.font-accent {
+  font-family: var(--font-caveat), cursive;
+}
+
+/* Long unbroken text (URLs, pasted strings) wraps inside containers */
+.readable-text {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* ─── Storybook stage ─── */
+.storybook-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  overflow: hidden;
+  padding: 0 1rem;
+}
+
+.storybook-stage--immersive {
+  padding: 0 0.5rem;
+}
+
+.storybook-stage--immersive .stf__parent {
+  filter: drop-shadow(0 28px 56px var(--shadow-deep))
+    drop-shadow(0 10px 20px var(--shadow-warm));
+}
+
+.storybook-flip {
+  margin: 0 auto;
+}
+
+/* ─── Book page flip overrides ─── */
+.stf__parent {
+  margin: 0 auto !important;
+}
+
+.stf__wrapper {
+  border-radius: 2px;
+  filter: drop-shadow(0 20px 40px var(--shadow-deep))
+    drop-shadow(0 6px 14px var(--shadow-warm));
+}
+
+.stf__block {
+  border-radius: 1px;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--warm-brown-light);
+  border-radius: 3px;
+}
+
+/* ─── Reduced motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
