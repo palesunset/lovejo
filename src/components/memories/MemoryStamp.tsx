@@ -60,7 +60,7 @@ function StampChrome({
             <div
               className={cn(
                 "absolute inset-0",
-                lite ? "bg-[#faf6ee]" : "bg-cream-paper-dark",
+                lite ? "bg-[#fffdf8]" : "bg-cream-paper-dark",
               )}
               aria-hidden
             />
@@ -71,7 +71,7 @@ function StampChrome({
               fill
               className={cn("object-cover", !lite && "sepia-[0.08]")}
               sizes={lite ? "(max-width: 768px) 28vw, 180px" : "(max-width: 640px) 40vw, 220px"}
-              quality={lite ? 50 : 75}
+              quality={lite ? 65 : 75}
               priority={priority}
               loading={priority ? "eager" : "lazy"}
             />

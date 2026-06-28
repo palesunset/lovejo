@@ -16,9 +16,9 @@ export interface FlipPerformancePrefs {
   isCoarsePointer: boolean;
   /** Lighter stamp chrome (no perforated edge, no image filters). */
   liteStamps: boolean;
-  /** Pages within this distance of the current page may load images (0 = current only). */
+  /** Pages within this distance of the current page may load images. */
   preloadRadius: number;
-  /** Skip ambient gradients and backdrop blur in the book chrome. */
+  /** Skip backdrop blur in the book chrome. */
   liteChrome: boolean;
   /** Pause image decode while a page is turning (Android only). */
   deferImagesWhileFlipping: boolean;
@@ -36,29 +36,51 @@ const DESKTOP: FlipPerformancePrefs = {
   deferImagesWhileFlipping: false,
 };
 
+function buildAndroidPrefs(coarse: boolean, reduced: boolean): FlipPerformancePrefs {
+  return {
+    isAndroid: true,
+    drawShadow: false,
+    flippingTime: reduced ? 380 : 420,
+    reduceStampMotion: true,
+    isCoarsePointer: coarse,
+    liteStamps: true,
+    preloadRadius: 1,
+    liteChrome: true,
+    // Dark placeholders were harder to see than flip jank — keep photos visible.
+    deferImagesWhileFlipping: false,
+  };
+}
+
+function detectPrefs(): FlipPerformancePrefs {
+  if (typeof window === "undefined") {
+    return DESKTOP;
+  }
+
+  const android = isAndroidDevice();
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (android) {
+    return buildAndroidPrefs(coarse, reduced);
+  }
+
+  return {
+    ...DESKTOP,
+    flippingTime: reduced ? 380 : coarse ? 700 : 900,
+    reduceStampMotion: reduced,
+    isCoarsePointer: coarse,
+  };
+}
+
 /**
  * Tunes react-pageflip per platform. iOS keeps the full scrapbook look;
  * Android gets lighter GPU work because 3D page flips jank badly there.
  */
 export function useFlipPerformance(): FlipPerformancePrefs {
-  const [prefs, setPrefs] = useState<FlipPerformancePrefs>(DESKTOP);
+  const [prefs, setPrefs] = useState<FlipPerformancePrefs>(detectPrefs);
 
   useEffect(() => {
-    const android = isAndroidDevice();
-    const coarse = window.matchMedia("(pointer: coarse)").matches;
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    setPrefs({
-      isAndroid: android,
-      drawShadow: !android && !reduced,
-      flippingTime: reduced ? 380 : android ? 420 : coarse ? 700 : 900,
-      reduceStampMotion: android || reduced,
-      isCoarsePointer: coarse,
-      liteStamps: android,
-      preloadRadius: android ? 0 : 1,
-      liteChrome: android,
-      deferImagesWhileFlipping: android,
-    });
+    setPrefs(detectPrefs());
   }, []);
 
   return prefs;

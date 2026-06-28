@@ -42,14 +42,17 @@ export const BookPage = memo(
       <div
         ref={ref}
         className={cn(
-          "relative w-full h-full overflow-hidden texture-paper",
-          liteStamps && "book-page--android",
-          "shadow-[inset_-3px_0_12px_rgba(0,0,0,0.06),inset_2px_0_6px_rgba(255,255,255,0.3)]",
+          "relative w-full h-full overflow-hidden",
+          liteStamps ? "book-page--android" : "texture-paper",
+          !liteStamps &&
+            "shadow-[inset_-3px_0_12px_rgba(0,0,0,0.06),inset_2px_0_6px_rgba(255,255,255,0.3)]",
           className,
         )}
       >
         <div className="absolute inset-2 sm:inset-3 border border-warm-brown/[0.08] pointer-events-none" />
-        <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-black/[0.04] to-transparent pointer-events-none" />
+        {!liteStamps && (
+          <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-black/[0.04] to-transparent pointer-events-none" />
+        )}
 
         <div className="relative h-full flex flex-col p-3 sm:p-5 md:p-7">
           {pageTitle && (

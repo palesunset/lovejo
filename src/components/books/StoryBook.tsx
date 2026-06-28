@@ -150,7 +150,14 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
     <div
       className={cn(
         "fixed inset-0 z-50 flex flex-col h-dvh w-full overflow-hidden",
-        isFire ? "texture-reading-room-fire" : "texture-reading-room-ice",
+        flipPrefs.isAndroid
+          ? isFire
+            ? "storybook-room--android-fire"
+            : "storybook-room--android-ice"
+          : isFire
+            ? "texture-reading-room-fire"
+            : "texture-reading-room-ice",
+        flipPrefs.isAndroid && "storybook-shell--android",
       )}
     >
       {/* Ambient reading lamp — static background layer (safe on Android; not part of 3D flip) */}
@@ -220,16 +227,22 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           "storybook-stage storybook-stage--immersive relative z-10 flex-1 min-h-0",
-          flipPrefs.liteChrome && "storybook-stage--android",
+          flipPrefs.isAndroid && "storybook-stage--android",
         )}
       >
         <div
-          className="shrink-0"
+          className="relative shrink-0"
           style={{
             width: bookSize.width,
             height: bookSize.height,
           }}
         >
+          {flipPrefs.isAndroid && (
+            <div
+              className="storybook-page-glow pointer-events-none absolute -inset-4 rounded-md"
+              aria-hidden
+            />
+          )}
           <HTMLFlipBook
             ref={bookRef}
             width={bookSize.width}
@@ -250,8 +263,12 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
           <div
             key="cover"
             className={cn(
-              "texture-paper-aged relative w-full h-full flex flex-col overflow-y-auto px-5 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4",
-              isFire ? "shadow-[inset_0_0_40px_rgba(255,100,30,0.06)]" : "shadow-[inset_0_0_40px_rgba(100,180,255,0.06)]",
+              "relative w-full h-full flex flex-col overflow-y-auto px-5 pt-5 pb-3 sm:px-8 sm:pt-8 sm:pb-4",
+              flipPrefs.isAndroid ? "book-cover--android" : "texture-paper-aged",
+              !flipPrefs.isAndroid &&
+                (isFire
+                  ? "shadow-[inset_0_0_40px_rgba(255,100,30,0.06)]"
+                  : "shadow-[inset_0_0_40px_rgba(100,180,255,0.06)]"),
             )}
           >
             <div
@@ -356,7 +373,10 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
 
           <div
             key="back"
-            className="texture-paper-aged relative w-full h-full flex flex-col items-center justify-center p-8"
+            className={cn(
+              "relative w-full h-full flex flex-col items-center justify-center p-8",
+              flipPrefs.isAndroid ? "book-cover--android" : "texture-paper-aged",
+            )}
           >
             <div className="absolute inset-3 border border-warm-brown/10 pointer-events-none" />
             <p className="font-accent text-2xl sm:text-3xl text-warm-brown/50 text-center">
