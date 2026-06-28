@@ -15,6 +15,8 @@ interface MemoryStampProps {
   deferImage?: boolean;
   /** Skip entrance animation for off-screen pages. */
   animate?: boolean;
+  /** Disable lift-on-hover (touch devices). */
+  enableHover?: boolean;
 }
 
 const rotations = [-4, 2.5, -2, 3.5, -1.5, 2];
@@ -28,6 +30,7 @@ export const MemoryStamp = memo(function MemoryStamp({
   onClick,
   deferImage = false,
   animate = true,
+  enableHover = true,
 }: MemoryStampProps) {
   const rotation = rotations[index % rotations.length];
   const hasTape = index % 3 === 0;
@@ -44,12 +47,16 @@ export const MemoryStamp = memo(function MemoryStamp({
           ? { delay: index * 0.06, duration: 0.45, ease: "easeOut" }
           : undefined
       }
-      whileHover={{
-        y: -8,
-        rotate: rotation + 1.5,
-        scale: 1.04,
-        zIndex: 10,
-      }}
+      whileHover={
+        enableHover
+          ? {
+              y: -8,
+              rotate: rotation + 1.5,
+              scale: 1.04,
+              zIndex: 10,
+            }
+          : undefined
+      }
       className={cn(
         "relative cursor-pointer text-left w-full",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-antique-gold/40 rounded-sm",

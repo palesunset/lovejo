@@ -13,6 +13,7 @@ interface BookPageProps {
   className?: string;
   deferImages?: boolean;
   animateStamps?: boolean;
+  enableStampHover?: boolean;
 }
 
 /** Scrapbook-style page with margin decoration and stamp collage. */
@@ -26,6 +27,7 @@ export const BookPage = memo(
       className,
       deferImages = false,
       animateStamps = true,
+      enableStampHover = true,
     },
     ref,
   ) {
@@ -60,6 +62,7 @@ export const BookPage = memo(
                 onClick={() => onMemoryClick(memory)}
                 deferImage={deferImages}
                 animate={animateStamps}
+                enableHover={enableStampHover}
               />
             ))}
           </div>

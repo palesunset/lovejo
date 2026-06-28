@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Home } from "lucide-react";
 import { BookPage } from "@/components/books/BookPage";
 import { useBookDimensions } from "@/hooks/useBookDimensions";
+import { useFlipPerformance } from "@/hooks/useFlipPerformance";
 import { chunkArray } from "@/lib/utils/dates";
 import { cn } from "@/lib/utils/cn";
 import { getBookDedication } from "@/lib/data/book-dedications";
@@ -49,9 +50,21 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
     };
   }>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  /** Image preload window — updated after flip ends to avoid jank mid-animation. */
+  const [renderPage, setRenderPage] = useState(0);
+  const flipEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null);
   const [memories, setMemories] = useState(initialMemories);
   const bookSize = useBookDimensions({ preset: "immersive" });
+  const flipPrefs = useFlipPerformance();
+
+  useEffect(() => {
+    return () => {
+      if (flipEndTimerRef.current) {
+        clearTimeout(flipEndTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     setMemories(initialMemories);
@@ -69,8 +82,8 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
   const totalPages = memoryPages.length + 2;
 
   const isPageNearViewport = useCallback(
-    (pageIndex: number) => Math.abs(currentPage - (pageIndex + 1)) <= 1,
-    [currentPage],
+    (pageIndex: number) => Math.abs(renderPage - (pageIndex + 1)) <= 1,
+    [renderPage],
   );
 
   const handleFlipNext = useCallback(() => {
@@ -81,9 +94,20 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
     bookRef.current?.pageFlip().flipPrev();
   }, []);
 
-  const handlePageChange = useCallback((e: { data: number }) => {
-    setCurrentPage(e.data);
-  }, []);
+  const handlePageChange = useCallback(
+    (e: { data: number }) => {
+      setCurrentPage(e.data);
+
+      if (flipEndTimerRef.current) {
+        clearTimeout(flipEndTimerRef.current);
+      }
+
+      flipEndTimerRef.current = setTimeout(() => {
+        setRenderPage(e.data);
+      }, flipPrefs.flippingTime + 80);
+    },
+    [flipPrefs.flippingTime],
+  );
 
   const theme = book.coverVariant ?? "fire";
   const isFire = theme === "fire";
@@ -170,10 +194,10 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
             mobileScrollSupport={true}
             className="storybook-flip mx-auto"
             onFlip={handlePageChange}
-            drawShadow={true}
+            drawShadow={flipPrefs.drawShadow}
             usePortrait={true}
             startPage={0}
-            flippingTime={900}
+            flippingTime={flipPrefs.flippingTime}
             useMouseEvents={true}
             clickEventForward={true}
             swipeDistance={30}
@@ -272,7 +296,10 @@ export function StoryBook({ book, memories: initialMemories }: StoryBookProps) {
               pageNumber={pageIndex + 1}
               onMemoryClick={setSelectedMemory}
               deferImages={!isPageNearViewport(pageIndex)}
-              animateStamps={isPageNearViewport(pageIndex)}
+              animateStamps={
+                !flipPrefs.reduceStampMotion && isPageNearViewport(pageIndex)
+              }
+              enableStampHover={!flipPrefs.isCoarsePointer}
             />
           ))}
 

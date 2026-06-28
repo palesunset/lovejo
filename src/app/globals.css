@@ -436,6 +436,13 @@ body {
     drop-shadow(0 10px 20px var(--shadow-warm));
 }
 
+@media (max-width: 768px), (pointer: coarse) {
+  .storybook-stage--immersive .stf__parent,
+  .stf__wrapper {
+    filter: drop-shadow(0 12px 24px var(--shadow-deep));
+  }
+}
+
 .storybook-flip {
   margin: 0 auto;
 }
