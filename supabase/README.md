@@ -23,7 +23,8 @@ Run in order in the **Supabase SQL Editor**:
 | 2 | `migrations/002_storage_policies.sql` | `memory-photos` bucket + storage RLS |
 | 3 | `migrations/003_public_read.sql` | Anonymous read access for books & memories |
 | 4 | `migrations/004_performance_indexes.sql` | Search + tag lookup indexes |
-| 5 | `seed.sql` | Books, tags, allowed users |
+| 5 | `migrations/005_memory_timestamptz.sql` | Full timestamps for `memory_date` (GMT+8) |
+| 6 | `seed.sql` | Books, tags, allowed users |
 
 ### Auth users (passwords)
 
@@ -47,10 +48,11 @@ npm run seed:auth
 
 Run down migrations in **reverse order**:
 
-1. `migrations/004_performance_indexes.down.sql`
-2. `migrations/003_public_read.down.sql`
-3. `migrations/002_storage_policies.down.sql`
-4. `migrations/001_normalized_schema.down.sql`
+1. `migrations/005_memory_timestamptz.down.sql`
+2. `migrations/004_performance_indexes.down.sql`
+3. `migrations/003_public_read.down.sql`
+4. `migrations/002_storage_policies.down.sql`
+5. `migrations/001_normalized_schema.down.sql`
 
 ## Design guarantees
 

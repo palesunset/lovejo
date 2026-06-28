@@ -14,6 +14,10 @@ import { Button } from "@/components/ui/Button";
 import { createMemory, uploadMemoryPhoto } from "@/lib/services/memory-service.client";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
+  normalizeMemoryDateForStorage,
+  toDatetimeLocalValue,
+} from "@/lib/utils/dates";
+import {
   compressImageForUpload,
   formatFileSize,
   MAX_UPLOAD_BYTES,
@@ -42,7 +46,7 @@ export function AddMemoryModal({
   const [title, setTitle] = useState("");
   const [story, setStory] = useState("");
   const [perspective, setPerspective] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 16));
+  const [date, setDate] = useState(toDatetimeLocalValue());
   const [location, setLocation] = useState("");
   const [tags, setTags] = useState("");
   const [bookId, setBookId] = useState(defaultBookId ?? books[0]?.id ?? "");
@@ -80,7 +84,7 @@ export function AddMemoryModal({
     setTitle("");
     setStory("");
     setPerspective("");
-    setDate(new Date().toISOString().slice(0, 16));
+    setDate(toDatetimeLocalValue());
     setLocation("");
     setTags("");
     setPhoto(null);
@@ -159,7 +163,7 @@ export function AddMemoryModal({
           bookId,
           title: title.trim(),
           story: story.trim(),
-          date: new Date(date).toISOString(),
+          date: normalizeMemoryDateForStorage(date),
           location: location.trim() || undefined,
           tags: tags
             .split(",")

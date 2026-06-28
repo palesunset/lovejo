@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createMemorySchema } from "@/lib/validators/memory";
+import { normalizeMemoryDateForStorage } from "@/lib/utils/dates";
 import { linkMemoryTags, resolveTagIds } from "@/lib/services/tag-service";
 import { db } from "@/lib/db/repositories";
 import { getBookIdForEmail } from "@/lib/utils/book-owners";
@@ -40,7 +41,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const memoryDate = date.includes("T") ? date.split("T")[0] : date;
+  const memoryDate = normalizeMemoryDateForStorage(date);
 
   const { data: memory, error } = await db.memories(supabase).insertReturningId({
     book_id: bookId,

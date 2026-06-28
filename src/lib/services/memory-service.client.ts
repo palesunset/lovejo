@@ -8,6 +8,7 @@ import { linkMemoryTags, resolveTagIds } from "@/lib/services/tag-service";
 import type { MemoryWithRelations } from "@/lib/types/database";
 import { db } from "@/lib/db/repositories";
 import { getBookIdForEmail } from "@/lib/utils/book-owners";
+import { normalizeMemoryDateForStorage } from "@/lib/utils/dates";
 import {
   compressImageForUpload,
   MAX_UPLOAD_BYTES,
@@ -94,9 +95,7 @@ export async function createMemory(
     throw new Error("Memories can only be added to your own book");
   }
 
-  const memoryDate = input.date.includes("T")
-    ? input.date.split("T")[0]
-    : input.date;
+  const memoryDate = normalizeMemoryDateForStorage(input.date);
 
   const { data: memory, error: memoryError } = await db
     .memories(supabase)
